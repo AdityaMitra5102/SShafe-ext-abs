@@ -1,0 +1,92 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%Template version as of 6/27/2024
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{L-RAPID: Lightweight Reversible And Privacy-preserving IIoT Data-perturbation system}
+
+\author{\IEEEauthorblockN{Rabbi Hasan Himel}
+\IEEEauthorblockA{\textit{CyberMACS} \\
+\textit{Kadir Has University}\\
+Istanbul, Turkiye \\
+rabbihasan.himel@stu.khas.edu.tr}
+\and
+\IEEEauthorblockN{Tayyaba Basri}
+\IEEEauthorblockA{\textit{CyberMACS} \\
+\textit{Kadir Has University}\\
+Istanbul, Turkiye \\
+tayyababasri@stu.khas.edu.tr}
+\and
+\IEEEauthorblockN{Hamza Haroon}
+\IEEEauthorblockA{\textit{CyberMACS} \\
+\textit{Kadir Has University}\\
+Istanbul, Turkiye \\
+hamzaharoon@stu.khas.edu.tr}
+\and
+\IEEEauthorblockN{Aditya Mitra}
+\IEEEauthorblockA{\textit{CyberMACS} \\
+\textit{Kadir Has University}\\
+Istanbul, Turkiye \\
+aditya.mitra@stu.khas.edu.tr}
+\and
+\IEEEauthorblockN{E. Fatih Yetkin}
+\IEEEauthorblockA{\textit{Management Information Systems} \\
+\textit{Kadir Has University}\\
+Istanbul, Turkiye \\
+fatih.yetkin@khas.edu.tr}
+\and
+\IEEEauthorblockN{Tuğçe Ballı}
+\IEEEauthorblockA{\textit{Management Information Systems} \\
+\textit{Kadir Has University}\\
+Istanbul, Turkiye \\
+tugce.balli@khas.edu.tr}
+}
+\maketitle
+
+\begin{abstract}
+IIoT(Industrial Internet of Things) systems constantly stream telemetry data from sensors and machinery to the cloud, posing serious privacy and security challenges. Conventional encryption methods are computationally too expensive for legacy devices. Our measurements show AES-128 requires roughly 59 - 70 times more per-packet latency than our lightweight scheme under simulated Modbus streaming conditions, while common noise-based perturbation methods irreversibly distort data. We introduce and evaluate a lightweight, fully reversible data perturbation pipeline for IIoT telemetry, contributing a composite reversibility privacy-key-space scoring framework for comparing perturbation strategies under realistic legacy-device constraints. To assess the balance between privacy and utility, a dataset comprising 31,106 IIoT intrusion detection samples covering five distinct attack categories was employed. After training a classifier that achieved a 98.47\% binary classification accuracy on original data, we evaluated four different perturbation techniques: Gaussian noise, Laplacian noise, XOR 16-bit, and XOR 64-bit against both a static and an adaptive adversary.
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+telemetry, perturbation, reversible, IoT, IIoT
+\end{IEEEkeywords}
+
+\section{Introduction}
+IIoT equipment produces valuable operational telemetry data, the capture of which risks revealing commercially sensitive information about manufacturing operations and system design. Complete cryptographic shielding is too expensive for legacy equipment, while the noise addition approach may introduce permanently distorted signals. Although XOR masking, Gaussian noise and Laplacian noise are each individually well-established techniques, prior work has not, to our knowledge, evaluated them side-by-side under a unified reversibility, privacy and key-space scoring framework on a realistic IIoT dataset nor tested them against an adversary that retrains directly on the perturbed signal. This work bridges the gap by evaluating four approaches on a realistic IIoT dataset with 31,106 samples(15,000 normal, 16,106 attack) and designing a rigorous composite scoring system for evaluation. 
+
+\section{Methodology}
+
+We used the Modbus telemetry subset of the publicly available ToN\_IoT dataset \cite{dataset}, comprising 31,106 samples, labeled as normal 15,000 (48\%) and attack 16,106 (52\%) across five attack categories: Injection, Backdoor, scanning, XSS, and Password. The four Modbus function-code registers (FC1-FC4) are stationary, with low variance ratios ranging from 0.56 to 0.58, indicating that the raw signal is information-rich and difficult to model externally.
+
+The Random Forest Classifier achieved 98.47\% (weighted F1: 0.9847) on a binary detection of normal versus attack traffic, with 16 (of 3000) normal samples classified as attacks and 79 (of 3222) attack samples missed on the binary task. This provides evidence that the raw IIoT telemetry network has a highly exploitable discriminative structure in its features and simultaneously justifies privacy-preserving perturbation before transmission. 
+
+The study evaluated four distinct perturbation strategies against two adversary models:a static adversary, represented by a classifier trained on the original data and evaluated directly on perturbed samples and a stronger adaptive adversary who retrains a fresh Random Forest classifier directly on the perturbed values using an 80/20 stratified train-test split modeling an attacker with access to ground-truth labels for a substantial portion of intercepted traffic. XOR masking combines data values with a keystream generated from a shared secret seed via a pseudorandom number generator, producing one unique value per sample in the current prototype this seed is static across the run, with production deployment intended to derive it from a shared secret key combined with a per-packet counter. Because this deterministic process preserves the data without introducing randomness, it remains entirely reversible. The 16-bit approach uses a 65,536 key space, while the 64-bit approach stretches it to 264. The testing phase also included additive noise utilizing Gaussian and Laplacian distributions. To guarantee consistency across these randomized methods, a uniform random seed was employed. The Laplacian distribution's "fatter" tails caused perturbed data points to be displaced significantly farther from their original positions than in the Gaussian distribution at equivalent power levels, thereby increasing the difficulty of statistical unperturbation for an adversary. While all four algorithms successfully achieved 100\% exact-match restoration, they simultaneously hindered attackers' efforts, typically lowering accuracy to 47-51\%. 50\% adversarial accuracy in binary classification implies the attacker has no knowledge from which to infer the results, and thus the probability of each outcome is 0.5.
+
+XOR 64-bit is the most advantageous perturbation technique among the methods evaluated: measured at 0.15µs per packet under simulated real-time Modbus streaming, it is roughly 58.8 times faster than AES-128-CTR and 69.8\% faster than AES-128-CBC. This speed advantage comes from packing four Modbus registers into a single 64-bit SIMD operation, cutting per-packet latency roughly 10x relative to the 16-bit variant not from an expanded keyspace, since plain XOR provides no diffusion across registers and each register remains independently recoverable if its portion of the keystream is exposed. Like the noise based methods, XOR relies on a shared seed to regenerate its keystream from decryption and should be paired with stronger seed management practices (e.g., a per-packet counter rather than a static seed) before production use. Gaussian and Laplacian perturbation also achieved full reversibility and comparable privacy protection, but both rely on a single shared seed for both encryption and decryption, a smaller and less formally characterized secret space than XOR-64’s explicit key and should be paired with stronger seed management practices before production use. The uniformity of low attack accuracy seen by each method suggests that what is necessary to achieve secure communication is not a particular method of perturbation, but, in general, to eradicate the statistical structure of the transmitted signal, in whatever form, or by whichever of the introduced methods. Gaussian noise masking should be used only for initial feasibility analysis, as its additive nature and inherent predictability make it highly sensitive to statistical analysis. The 16-bit XOR is suitable for environments with highly constrained computational resources rather than for environments lacking key management.
+
+\section{Conclusion}
+
+This study shows that the proposed lightweight, reversible perturbation can secure IIoT telemetry without compromising data utility for authorized receivers, evaluated against both static and adaptive adversaries. All four tested methods achieved 100\% reversibility and close to 50\% adversarial accuracy. XOR 64-bit masking proved to be the optimal solution across privacy, security, and implementation simplicity, primarily through its SIMD-enabled speed rather than an expanded keyspace. Further research should investigate cryptographically secure keystream generation (e.g., ChaCha20 or ASCON-128a in place of the prototype’s non-cryptographic PRNG) alongside key/seed rotation to achieve forward secrecy, streaming perturbation for telemetry pipeline processing, and performance benchmarking under real-world conditions on physical IIoT boards. 
+
+\section*{Acknowledgment}
+
+This research was conducted within the framework of the Erasmus Mundus Joint Master’s Programme in Applied Cybersecurity (CyberMACS) — Project No. 101082683, co-funded by the European Union under the Erasmus+ MUNDUS Programme.
+
+This work was supported by the Scientific and Technological Research Council of Turkey (TÜBITAK)-1001 (Project number: 125E288).
+
+\begin{thebibliography}{00}
+\bibitem{dataset} Nour Moustafa, "ToN\_IoT datasets", IEEE Dataport, October 16, 2019, doi:10.21227/fesz-dm97
+\end{thebibliography}
+
+\end{document}
