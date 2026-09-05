@@ -81,7 +81,6 @@ The password reset portal implements a novel credential rotation workflow that a
 
 \section{Conclusion}
 
-This study shows that the proposed lightweight, reversible perturbation can secure IIoT telemetry without compromising data utility for authorized receivers, evaluated against both static and adaptive adversaries. All four tested methods achieved 100\% reversibility and close to 50\% adversarial accuracy. XOR 64-bit masking proved to be the optimal solution across privacy, security, and implementation simplicity, primarily through its SIMD-enabled speed rather than an expanded keyspace. Further research should investigate cryptographically secure keystream generation (e.g., ChaCha20 or ASCON-128a in place of the prototype’s non-cryptographic PRNG) alongside key/seed rotation to achieve forward secrecy, streaming perturbation for telemetry pipeline processing, and performance benchmarking under real-world conditions on physical IIoT boards. 
 
 \section*{Acknowledgment}
 
